@@ -12,7 +12,24 @@ app.get("/*", (req, res) => res.redirect("/"))
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`)
 
+// http와 ws(websocket) 프로토콜을 하나로 합치는 코드
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
+
+
+wss.on("connection", (socket)=>{
+  console.log("Connected to Browser ✅")
+
+  socket.on("close", ()=>{
+    console.log("Disconnected from Browser ❌")
+  });
+
+  socket.on("message", (message) => {
+    console.log(message.toString('utf-8'));
+  });
+
+  socket.send("hello!!")
+})
+
 
 server.listen(3000, handleListen);
