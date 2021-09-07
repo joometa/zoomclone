@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import WebSocket from "ws";
+import SocketIO from "socket.io";
 
 const app = express();
 
@@ -12,35 +12,46 @@ app.get("/*", (req, res) => res.redirect("/"));
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
-// http와 ws(websocket) 프로토콜을 하나로 합치는 코드
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-const sockets = [];
-
-wss.on("connection", (socket) => {
-  sockets.push(socket);
-  socket["nickname"] = "Anonymous";
-  console.log("Connected to Browser ✅");
-
-  socket.on("close", () => {
-    console.log("Disconnected from Browser ❌");
+wsServer.on("connection", (socket) => {
+  socket.onAny((e) => {
+    console.log(`소켓 이벤트 : ${e}`);
   });
-
-  socket.on("message", (msg) => {
-    const message = JSON.parse(msg);
-
-    switch (message.type) {
-      case "new_message":
-        sockets.forEach((aSocket) => {
-          aSocket.send(
-            `${socket.nickname} : ${message.payload.toString("utf-8")}`
-          );
-        });
-      case "nickname":
-        socket["nickname"] = message.payload.toString("utf-8");
-    }
+  socket.on("enter_room", (roomName, done) => {
+    socket.join(roomName);
+    done();
   });
 });
 
-server.listen(3000, handleListen);
+// WebSocket 코드
+// const wss = new WebSocket.Server({ httpServer });
+
+// const sockets = [];
+// wss.on("connection", (socket) => {
+//   sockets.push(socket);
+//   socket["nickname"] = "Anonymous";
+//   console.log("Connected to Browser ✅");
+
+//   socket.on("close", () => {
+//     console.log("Disconnected from Browser ❌");
+//   });
+
+//   socket.on("message", (msg) => {
+//     const message = JSON.parse(msg);
+
+//     switch (message.type) {
+//       case "new_message":
+//         sockets.forEach((aSocket) => {
+//           aSocket.send(
+//             `${socket.nickname} : ${message.payload.toString("utf-8")}`
+//           );
+//         });
+//       case "nickname":
+//         socket["nickname"] = message.payload.toString("utf-8");
+//     }
+//   });
+// });
+
+httpServer.listen(3000, handleListen);

@@ -10,11 +10,15 @@ html(lang="ko")
     header 
       h1 Zoom
     main 
-      form#nick
-        input(type="text", placeholder="닉네임을 입력하세요", required)
-        button 저장
-      ul 
-      form#message
-        input(type="text", placeholder="메세지를 입력하세요", required)
-        button 전송
+      div#welcome 
+        form 
+          input(placeholder="방 제목", required, type="text")
+          button 방 입장
+      div#room
+        h3
+        ul  
+        form
+          input(placeholder="내용입력", required, type="text")
+          button 전송
+    script(src="/socket.io/socket.io.js") 
     script(src="/public/js/app.js") 
