@@ -17,11 +17,18 @@ function addMessage(message) {
 
 function handleMessageSubmit(e) {
   e.preventDefault();
-  const input = room.querySelector("input");
+  const input = room.querySelector("#msg input");
+  const value = input.value;
   socket.emit("new_message", input.value, roomName, () => {
-    addMessage(`나: ${input.value}`);
-    input.value = "";
+    addMessage(`나: ${value}`);
   });
+  input.value = "";
+}
+
+function handleNicknameSubmit(e) {
+  e.preventDefault();
+  const input = room.querySelector("#name input");
+  socket.emit("nickname", input.value);
 }
 
 function showRoom() {
@@ -29,8 +36,10 @@ function showRoom() {
   room.hidden = false;
   const h3 = document.querySelector("h3");
   h3.innerText = `채팅방 : ${roomName}`;
-  const form = room.querySelector("form");
-  form.addEventListener("submit", handleMessageSubmit);
+  const msgForm = room.querySelector("#msg");
+  const nameForm = room.querySelector("#name");
+  msgForm.addEventListener("submit", handleMessageSubmit);
+  nameForm.addEventListener("submit", handleNicknameSubmit);
 }
 
 function handleRoomSubmit(e) {
@@ -43,12 +52,12 @@ function handleRoomSubmit(e) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", () => {
-  addMessage("someone joined!");
+socket.on("welcome", (user) => {
+  addMessage(`${user} 님이 입장하였습니다.`);
 });
 
-socket.on("bye", () => {
-  addMessage("someone left!");
+socket.on("bye", (left) => {
+  addMessage(`${left} 님이 나갔습니다.`);
 });
 
 socket.on("new_message", addMessage);

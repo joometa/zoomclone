@@ -16,23 +16,33 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
+  socket["nickname"] = "익명의 사용자";
   socket.onAny((e) => {
     console.log(`소켓 이벤트 : ${e}`);
   });
+
+  // 채팅방 입장 이벤트
   socket.on("enter_room", (roomName, done) => {
     socket.join(roomName);
     done();
-    socket.to(roomName).emit("welcome");
+    socket.to(roomName).emit("welcome", socket.nickname);
   });
-  socket.on("diconnecting", () => {
+
+  // 채팅방 퇴장 이벤트
+  socket.on("disconnecting", () => {
     socket.rooms.forEach((room) => {
-      socket.to(room).emit("bye");
+      socket.to(room).emit("bye", socket.nickname);
     });
   });
+
+  // 메세지 입력 이벤트
   socket.on("new_message", (msg, room, done) => {
-    socket.to(room).emit("new_message", msg);
+    socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
     done();
   });
+
+  // 닉네임 설정 이벤트
+  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
 // WebSocket 코드
